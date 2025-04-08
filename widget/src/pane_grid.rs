@@ -208,6 +208,27 @@ where
         }
     }
 
+    /// Nuh uh
+    pub fn with_contents<T>(
+        state: &'a State<T>,
+        contents: Vec<Content<'a, Message, Theme, Renderer>>,
+    ) -> Self {
+        let panes = state.panes.keys().copied().collect();
+        Self {
+            internal: &state.internal,
+            panes,
+            contents,
+            width: Length::Fill,
+            height: Length::Fill,
+            spacing: 0.0,
+            on_click: None,
+            on_drag: None,
+            on_resize: None,
+            class: <Theme as Catalog>::default(),
+            last_mouse_interaction: None,
+        }
+    }
+
     /// Sets the width of the [`PaneGrid`].
     pub fn width(mut self, width: impl Into<Length>) -> Self {
         self.width = width.into();

@@ -133,68 +133,80 @@ impl Example {
         let focus = self.focus;
         let total_panes = self.panes.len();
 
-        let pane_grid = PaneGrid::new(&self.panes, |id, pane, is_maximized| {
-            let is_focused = focus == Some(id);
 
-            let pin_button = button(
-                text(if pane.is_pinned { "Unpin" } else { "Pin" }).size(14),
-            )
-            .on_press(Message::TogglePin(id))
-            .padding(3);
+        let contents = self
+            .panes
+            .iter()
+            .map(|(id, pane)| {
+                let is_maximized = match self.panes.maximized() {
+                    Some(p) if *id == p => true,
+                    _ => false,
+                };
 
-            let title = row![
-                pin_button,
-                "Pane",
-                text(pane.id.to_string()).color(if is_focused {
-                    PANE_ID_COLOR_FOCUSED
-                } else {
-                    PANE_ID_COLOR_UNFOCUSED
-                }),
-            ]
-            .spacing(5);
+                let is_focused = focus == Some(*id);
 
-            let title_bar = pane_grid::TitleBar::new(title)
-                .controls(pane_grid::Controls::dynamic(
-                    view_controls(
-                        id,
-                        total_panes,
-                        pane.is_pinned,
-                        is_maximized,
-                    ),
-                    button(text("X").size(14))
-                        .style(button::danger)
-                        .padding(3)
-                        .on_press_maybe(
-                            if total_panes > 1 && !pane.is_pinned {
-                                Some(Message::Close(id))
-                            } else {
-                                None
-                            },
+                let pin_button = button(
+                    text(if pane.is_pinned { "Unpin" } else { "Pin" }).size(14),
+                )
+                .on_press(Message::TogglePin(*id))
+                .padding(3);
+
+                let title = row![
+                    pin_button,
+                    "Pane",
+                    text(pane.id.to_string()).color(if is_focused {
+                        PANE_ID_COLOR_FOCUSED
+                    } else {
+                        PANE_ID_COLOR_UNFOCUSED
+                    }),
+                ]
+                .spacing(5);
+
+                let title_bar = pane_grid::TitleBar::new(title)
+                    .controls(pane_grid::Controls::dynamic(
+                        view_controls(
+                            *id,
+                            total_panes,
+                            pane.is_pinned,
+                            is_maximized,
                         ),
-                ))
-                .padding(10)
-                .style(if is_focused {
-                    style::title_bar_focused
-                } else {
-                    style::title_bar_active
-                });
+                        button(text("X").size(14))
+                            .style(button::danger)
+                            .padding(3)
+                            .on_press_maybe(
+                                if total_panes > 1 && !pane.is_pinned {
+                                    Some(Message::Close(*id))
+                                } else {
+                                    None
+                                },
+                            ),
+                    ))
+                    .padding(10)
+                    .style(if is_focused {
+                        style::title_bar_focused
+                    } else {
+                        style::title_bar_active
+                    });
 
-            pane_grid::Content::new(responsive(move |size| {
-                view_content(id, total_panes, pane.is_pinned, size)
-            }))
-            .title_bar(title_bar)
-            .style(if is_focused {
-                style::pane_focused
-            } else {
-                style::pane_active
+                pane_grid::Content::new(responsive(move |size| {
+                    view_content(*id, total_panes, pane.is_pinned, size)
+                }))
+                .title_bar(title_bar)
+                .style(if is_focused {
+                    style::pane_focused
+                } else {
+                    style::pane_active
+                })
             })
-        })
-        .width(Fill)
-        .height(Fill)
-        .spacing(10)
-        .on_click(Message::Clicked)
-        .on_drag(Message::Dragged)
-        .on_resize(10, Message::Resized);
+            .collect();
+
+        let pane_grid = PaneGrid::with_contents(&self.panes, contents)
+            .width(Fill)
+            .height(Fill)
+            .spacing(10)
+            .on_click(Message::Clicked)
+            .on_drag(Message::Dragged)
+            .on_resize(10, Message::Resized);
 
         container(pane_grid).padding(10).into()
     }
