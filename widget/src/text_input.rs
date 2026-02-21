@@ -924,7 +924,12 @@ where
                         _ => {}
                     }
 
-                    if let Some(text) = text {
+                    if let Some(text) = text
+                    && (
+                        !state.keyboard_modifiers.control()
+                        && !state.keyboard_modifiers.alt()
+                        && !state.keyboard_modifiers.logo()
+                    ) {
                         let Some(on_input) = &self.on_input else {
                             return;
                         };
