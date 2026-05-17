@@ -268,7 +268,12 @@ where
             let is_hovered_link = self.on_link_click.is_some() && Some(index) == self.hovered_link;
 
             if span.highlight.is_some() || span.underline || span.strikethrough || is_hovered_link {
-                let translation = layout.position() - Point::ORIGIN;
+                let anchor = layout.bounds().anchor(
+                    state.paragraph.min_bounds(),
+                    state.paragraph.align_x(),
+                    state.paragraph.align_y(),
+                );
+                let translation = anchor - Point::ORIGIN;
                 let regions = state.paragraph.span_bounds(index);
 
                 if let Some(highlight) = span.highlight {
